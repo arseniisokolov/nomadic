@@ -1,6 +1,17 @@
 // Main rhizomatic framework export
-export { createFlow, deal } from './flows.js';
-export { Territory } from './territories.js';
-export { Cartography } from './cartography.js';
+export { 
+  createFlow, 
+  createDOMFlow, 
+  createEventFlow, 
+  createComputedFlow,
+  createDeal, 
+  uniteFlows 
+} from './flows.js';
+export { Plateau } from './plateaus.js';
 export { becoming, becomingOther } from './becomings.js';
-export { assemble, Fragment } from './assemblages.js'; 
+export { 
+  dom, 
+  Fragment, 
+  createFlowAssemblage, 
+  createDOMAssemblage 
+} from './assemblages.js'; 

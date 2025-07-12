@@ -1,156 +1,71 @@
-// import { createFlow, assemble, Territory, Cartography } from './framework/index.js';
+import {
+  createFlow,
+  createDOMFlow,
+  createEventFlow,
+  createComputedFlow,
+  Plateau,
+  dom,
+  createFlowAssemblage,
+  createDOMAssemblage
+} from './framework';
 
-// // Create the main territory
-// const appTerritory = new Territory();
+// Create a plateau - a domain that organizes flows and assemblages
+const appPlateau = new Plateau();
 
-// // Application Flows - using gerunds to reflect becoming and process
-// appTerritory
-//   .addFlow('tasking', createFlow([]))  // was taskRhizome - now reflects the process of tasking
-//   .addFlow('writing', createFlow(""))  // was writingIntent - now reflects the process of writing
-//   .addFlow('filtering', createFlow("all")); // was filterFlow - now reflects the process of filtering
+// Establish rhizomatic flows using different flow types
+appPlateau.addFlow('counting', createFlow(0));
+appPlateau.addFlow('multiplying', createFlow(1));
 
-// // Derive visible tasks from task and filter flows
-// appTerritory.deal('appearing', ['tasking', 'filtering'], ([tasks, filter]) => {  // was visibleSlice - now reflects the process of appearing
-//   if (filter === "done") return tasks.filter(t => t.done);
-//   if (filter === "active") return tasks.filter(t => !t.done);
-//   return tasks;
-// });
-
-// // Register assemblages (components)
-// appTerritory.registerAssemblage('expressTask', (task) => {
-//   return assemble('div', { className: "task" },
-//     assemble('input', {
-//       type: "checkbox",
-//       checked: task.done,
-//       onChange: () => {
-//         task.done = !task.done;
-//         appTerritory.getFlow('tasking').set([...appTerritory.getFlow('tasking').get()]);
-//       }
-//     }),
-//     assemble('span', null, task.title),
-//     assemble('button', {
-//       onClick: () => {
-//         appTerritory.getFlow('tasking').set(
-//           appTerritory.getFlow('tasking').get().filter(t => t !== task)
-//         );
-//       }
-//     }, "🗑")
-//   );
-// });
-
-// appTerritory.registerAssemblage('intentionField', () => {
-//   const writing = appTerritory.getFlow('writing');
-//   const tasking = appTerritory.getFlow('tasking');
-
-//   const input = assemble('input', {
-//     placeholder: "What to do?",
-//     className: "intention-field",
-//     value: writing.get(),
-//     onInput: e => writing.set(e.target.value),
-//     onKeyDown: e => {
-//       if (e.key === "Enter" && writing.get().trim()) {
-//         const newTask = { title: writing.get().trim(), done: false };
-//         tasking.set([...tasking.get(), newTask]);
-//         writing.set("");
-//       }
-//     }
-//   });
-
-//   writing.cut(()=>{
-//     input.value = writing.get();
-//   });
-
-//   return input;
-// });
-
-// appTerritory.registerAssemblage('modeSelector', () => {
-//   const filtering = appTerritory.getFlow('filtering');
-
-//   return assemble('div', { className: "mode-selector" },
-//     ["all", "active", "done"].map(type =>
-//       assemble('button', {
-//         key: type,
-//         onClick: () => filtering.set(type),
-//         style: filtering.get() === type ? { fontWeight: "bold" } : {}
-//       }, type)
-//     )
-//   );
-// });
-
-// // Main cartography function
-// export default function mapTerritory() {
-//   const mapper = new Cartography(appTerritory, "root");
-
-//   const intentionField = appTerritory.getAssemblage('intentionField')();
-//   const modeSelector = appTerritory.getAssemblage('modeSelector')();
-//   const surface = mapper.createSurface("tasks");
-
-//   // Connect the appearing flow to the surface
-//   appTerritory.getFlow('appearing').cut(tasks => {
-//     surface.innerHTML = "";
-//     tasks.forEach(t => surface.append(appTerritory.getAssemblage('expressTask')(t)));
-//   });
-
-//   mapper.map(
-//     assemble('div', null,
-//       intentionField,
-//       modeSelector,
-//       surface
-//     )
-//   );
-// }
-import { createFlow, Territory, Cartography, assemble } from './framework';
-
-// Create a territory - a domain that organizes flows and assemblages
-const appTerritory = new Territory();
-
-// Establish rhizomatic flows using gerunds to reflect processes of becoming
-appTerritory.addFlow('counting', createFlow(0));
-appTerritory.addFlow('multiplying', createFlow(1));
-
-// Create a derived flow through rhizomatic connections (deal)
-// This flow emerges from the interaction of multiple other flows
-appTerritory.deal('computing', ['counting', 'multiplying'], ([count, mult]) => {
+// Create a computed flow that derives from other flows
+appPlateau.deal('computing', ['counting', 'multiplying'], ([count, mult]) => {
   return count * mult;
 });
 
-// Create another derived flow for display formatting
-// Shows how flows can transform and become other flows
-appTerritory.deal('displaying', ['computing'], ([computed]) => {
+
+// Create a derived flow through rhizomatic connections (deal)
+// This flow emerges from the interaction of multiple other flows
+appPlateau.deal('displaying', ['computing'], ([computed]) => {
   return `Result: ${computed}`;
 });
 
-// Register an assemblage - a temporary configuration that maps flows to visual elements
-// This assemblage becomes-other when the computing flow changes
-appTerritory.registerAssemblage('displayingComputed', () => {
-  const computing = appTerritory.getFlow('computing');
-  const displaying = appTerritory.getFlow('displaying');
-  const displayingComputed = assemble('h2', null, displaying.get());
+// Create an event flow for user interactions
+const clickEvent = createEventFlow();
+appPlateau.addFlow('clicking', clickEvent);
+
+// Register an assemblage that unites flows - demonstrates flow assemblage
+appPlateau.registerAssemblage('displayingComputed', () => {
+  const computing = appPlateau.getFlow('computing');
+  const displaying = appPlateau.getFlow('displaying');
+
+  // Create a DOM assemblage that unites the display flow with a DOM element
+  const displayElement = dom('h2', null, displaying.get());
+  
+  return createDOMAssemblage(displayElement, {
+    text: displaying
+  }).element;
 
   // Cut into the flow to respond to changes (rhizomatic connection)
-  computing.cut(() => {
-    displayingComputed.textContent = displaying.get();
-  });
-
-  return displayingComputed;
+  // computing.cut(() => {
+  //   displayAssemblage.update();
+  // });
 });
 
-// Assemblage for the increment button - creates territorial boundaries
-appTerritory.registerAssemblage('incrementing', () => {
-  const counting = appTerritory.getFlow('counting');
+// Assemblage for the increment button - creates plateau boundaries
+appPlateau.registerAssemblage('incrementing', () => {
+  const counting = appPlateau.getFlow('counting');
 
-  return assemble('button', {
+  return dom('button', {
     onClick: () => counting.set(counting.get() + 1)
   }, 'Increment');
 });
 
 // Assemblage for the multiplier control - demonstrates flow manipulation
-appTerritory.registerAssemblage('multiplyingControl', () => {
-  const multiplying = appTerritory.getFlow('multiplying');
+appPlateau.registerAssemblage('multiplyingControl', () => {
+  const multiplying = appPlateau.getFlow('multiplying');
 
-  return assemble('div', null,
-    assemble('label', null, 'Multiplier: '),
-    assemble('input', {
+  return dom('div', null,
+    dom('label', null, 'Multiplier: '),
+    dom('input', {
       type: 'number',
       value: multiplying.get(),
       onChange: (e) => multiplying.set(parseInt(e.target.value) || 1)
@@ -158,17 +73,55 @@ appTerritory.registerAssemblage('multiplyingControl', () => {
   );
 });
 
+// Assemblage that demonstrates DOM flow integration
+appPlateau.registerAssemblage('domFlowExample', () => {
+  // Create a DOM element
+  const counterElement = dom('div', { className: 'counter-display' }, '0');
+
+  // Create a DOM flow that directly manipulates the element ??
+  const domFlow = createDOMFlow(counterElement, 'textContent');
+
+  return createDOMAssemblage(counterElement, {
+    text: appPlateau.getFlow('counting')
+  }).element;
+});
+
+// Assemblage that demonstrates event flow integration
+appPlateau.registerAssemblage('eventFlowExample', () => {
+  const clicking = appPlateau.getFlow('clicking');
+
+  const eventButton = dom('button', {
+    onClick: (e) => clicking.trigger(e)
+  }, 'Trigger Event');
+
+  const eventDisplay = dom('div', { className: 'event-display' }, 'No events yet');
+
+  appPlateau.deal('eventText', ['clicking'], ([clicking]) =>
+    clicking ? `Last event: ${clicking.type}` : 'No events yet'
+  )
+
+  // Create a DOM assemblage for the event display
+  const eventAssemblage = createDOMAssemblage(eventDisplay, {
+    text: appPlateau.getFlow('eventText')
+  });
+
+  return dom('div', null, eventButton, eventAssemblage.element);
+});
+
 // Main assemblage that territorializes all controls into a unified configuration
-appTerritory.registerAssemblage('advancedCounter', () => {
-  return assemble('div', null,
-    appTerritory.getAssemblage('displayingComputed')(),
-    appTerritory.getAssemblage('incrementing')(),
-    appTerritory.getAssemblage('multiplyingControl')()
+appPlateau.registerAssemblage('advancedCounter', () => {
+  return dom('div', null,
+    appPlateau.getAssemblage('displayingComputed')(),
+    appPlateau.getAssemblage('incrementing')(),
+    appPlateau.getAssemblage('multiplyingControl')(),
+    appPlateau.getAssemblage('domFlowExample')(),
+    appPlateau.getAssemblage('eventFlowExample')()
   );
 });
 
-// Cartography function - maps the territory to visual assemblages
-export default function mapTerritory() {
-  const cartography = new Cartography(appTerritory, 'root');
-  cartography.map(appTerritory.getAssemblage('advancedCounter')());
+// Plateau mapping function - maps the plateau to visual assemblages
+export default function mapPlateau() {
+  const plateau = new Plateau();
+  plateau.setRoot('root');
+  plateau.map(appPlateau.getAssemblage('advancedCounter')());
 }

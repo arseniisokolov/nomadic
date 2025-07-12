@@ -1,7 +1,9 @@
-// DOM Assemblage Constructor with JSX support
-// Based on Deleuze's concept of assemblages - temporary configurations
+// DOM Assemblage Constructor with Flow Integration
+// Based on Deleuze's concept of assemblages - temporary configurations that unite flows
 
-export function assemble(type, props, ...children) {
+import { createDOMFlow, createEventFlow } from './flows.js';
+
+export function dom(type, props, ...children) {
   // Handle function components (assemblages)
   if (typeof type === 'function') {
     return type(props);
@@ -59,6 +61,56 @@ export function assemble(type, props, ...children) {
   }
   
   return null;
+}
+
+// Create an assemblage that unites flows
+export function createFlowAssemblage(flows, assemblageFn) {
+  const assemblage = assemblageFn(flows);
+  
+  // Connect flows to assemblage updates
+  flows.forEach(flow => {
+    flow.cut(() => {
+      if (assemblage && assemblage.update) {
+        assemblage.update();
+      }
+    });
+  });
+  
+  return assemblage;
+}
+
+// Create a DOM assemblage with flow integration
+export function createDOMAssemblage(element, flows = {}) {
+  const assemblage = {
+    element,
+    flows,
+    update() {
+      // Update DOM based on flow values
+      Object.entries(this.flows).forEach(([key, flow]) => {
+        if (key === 'text') {
+          this.element.textContent = flow.get();
+        } else if (key === 'html') {
+          this.element.innerHTML = flow.get();
+        } else if (key === 'className') {
+          this.element.className = flow.get();
+        } else if (key === 'style') {
+          Object.assign(this.element.style, flow.get());
+        } else if (key === 'attributes') {
+          const attrs = flow.get();
+          Object.entries(attrs).forEach(([attr, value]) => {
+            this.element.setAttribute(attr, value);
+          });
+        }
+      });
+    }
+  };
+  
+  // Connect all flows to assemblage updates
+  Object.values(flows).forEach(flow => {
+    flow.cut(() => assemblage.update());
+  });
+  
+  return assemblage;
 }
 
 // Fragment support
