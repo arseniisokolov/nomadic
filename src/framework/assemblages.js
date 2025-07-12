@@ -1,7 +1,7 @@
 // DOM Assemblage Constructor with JSX support
 // Based on Deleuze's concept of assemblages - temporary configurations
 
-export function jsx(type, props, ...children) {
+export function assemble(type, props, ...children) {
   // Handle function components (assemblages)
   if (typeof type === 'function') {
     return type(props);
@@ -83,13 +83,3 @@ export function Fragment(props) {
   
   return fragment;
 }
-
-// Legacy assemble function for backward compatibility
-export function assemble(tag, attrs = {}, ...children) {
-  return jsx(tag, attrs, ...children);
-}
-
-// Express an assemblage (render a component)
-export function express(assemblage) {
-  return assemblage;
-} 
