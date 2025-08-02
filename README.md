@@ -5,78 +5,75 @@
 ## Core Concepts
 
 ### 🌊 **Flows**
-Reactive data streams: data that automatically updates everything connected to it.
-
-### 🔄 **Becomings**
-Data transformations: process and transform data as it flows through your app.
+Reactive data streams with multiple specialized types:
+- **Data Flows**: Basic reactive data streams
+- **DOM Flows**: Direct DOM element manipulation
+- **Event Flows**: Event-driven reactive streams
+- **Deals**: Rhizomatic connections between flows
 
 ### 🧩 **Assemblages**
-Temporary UI configurations: can be disassembled and reassembled.
+Temporary UI configurations that unite flows with DOM elements. Can be disassembled and reassembled.
 
-### 🗺️ **Territories**
-Organized containers: groups related flows and assemblages together.
-
-### 🗺️ **Cartography**
-Rendering: maps your app structure to the actual DOM.
+### 🗺️ **Plateaus**
+Organized domains that group related flows and assemblages together. Each plateau is a smooth space where connections can be made and unmade freely.
 
 ## Agile Advantages
 
-Nomadic's flexible network structure makes it easy to **quickly redesign** (re-assemble) your interface. Unlike rigid tree structures, you can **rapidly iterate** by changing data flows anywhere without breaking the entire system.The framework's flexibility supports **responding to change** rather than following rigid plans.
+Nomadic's flexible network structure makes it easy to **quickly redesign** (re-assemble) your interface. Unlike rigid tree structures, you can **rapidly iterate** by changing data flows anywhere without breaking the entire system. The framework's flexibility supports **responding to change** rather than following rigid plans.
 
 ## Quick Example
 
 ```javascript
-import { createFlow, Territory, Cartography, assemble } from './framework';
+import { createFlow, createDOMFlow, createEventFlow, createComputedFlow, createDeal, Plateau } from './framework';
+import { dom } from './dom';
 
-// Create a territory - a domain that organizes flows and assemblages
-const appTerritory = new Territory();
+// Create a plateau - a domain that organizes flows and assemblages
+const appPlateau = new Plateau();
 
-// Establish rhizomatic flows using gerunds to reflect processes of becoming
-appTerritory.addFlow('counting', createFlow(0));
-appTerritory.addFlow('multiplying', createFlow(1));
+// Establish rhizomatic flows using different flow types
+appPlateau.addFlow('counting', createFlow(0));
+appPlateau.addFlow('multiplying', createFlow(1));
 
-// Create a derived flow through rhizomatic connections (deal)
-// This flow emerges from the interaction of multiple other flows
-appTerritory.deal('computing', ['counting', 'multiplying'], ([count, mult]) => {
+// Create a computed flow that derives from other flows
+appPlateau.deal('computing', ['counting', 'multiplying'], ([count, mult]) => {
   return count * mult;
 });
 
-// Flows can transform and become other flows
-appTerritory.deal('displaying', ['computing'], ([computed]) => {
+// Create a derived flow through rhizomatic connections (deal)
+appPlateau.deal('displaying', ['computing'], ([computed]) => {
   return `Result: ${computed}`;
 });
 
-// Register an assemblage - a temporary configuration that maps flows to visual elements
-// This assemblage becomes-other when the computing flow changes
-appTerritory.registerAssemblage('displayingComputed', () => {
-  const computing = appTerritory.getFlow('computing');
-  const displaying = appTerritory.getFlow('displaying');
-  const displayingComputed = assemble('h2', null, displaying.get());
+// Create an event flow for user interactions
+const clickEvent = createEventFlow();
+appPlateau.addFlow('clicking', clickEvent);
 
-  // Cut into the flow to respond to changes (rhizomatic connection)
-  computing.cut(() => {
-    displayingComputed.textContent = displaying.get();
-  });
+// Register an assemblage that unites flows with DOM elements
+appPlateau.registerAssemblage('displayingComputed', () => {
+  const displaying = appPlateau.getFlow('displaying');
+  const displayElement = dom('h2', null, displaying.get());
 
-  return displayingComputed;
+  return createDOMAssemblage(displayElement, {
+    text: displaying
+  }).element;
 });
 
 // Assemblage for the increment button
-appTerritory.registerAssemblage('incrementing', () => {
-  const counting = appTerritory.getFlow('counting');
+appPlateau.registerAssemblage('incrementing', () => {
+  const counting = appPlateau.getFlow('counting');
 
-  return assemble('button', {
+  return dom('button', {
     onClick: () => counting.set(counting.get() + 1)
   }, 'Increment');
 });
 
 // Assemblage for the multiplier control
-appTerritory.registerAssemblage('multiplyingControl', () => {
-  const multiplying = appTerritory.getFlow('multiplying');
+appPlateau.registerAssemblage('multiplyingControl', () => {
+  const multiplying = appPlateau.getFlow('multiplying');
 
-  return assemble('div', null,
-    assemble('label', null, 'Multiplier: '),
-    assemble('input', {
+  return dom('div', null,
+    dom('label', null, 'Multiplier: '),
+    dom('input', {
       type: 'number',
       value: multiplying.get(),
       onChange: (e) => multiplying.set(parseInt(e.target.value) || 1)
@@ -84,19 +81,54 @@ appTerritory.registerAssemblage('multiplyingControl', () => {
   );
 });
 
-// Main assemblage that territorializes all controls into a unified configuration
-appTerritory.registerAssemblage('advancedCounter', () => {
-  return assemble('div', null,
-    appTerritory.getAssemblage('displayingComputed')(),
-    appTerritory.getAssemblage('incrementing')(),
-    appTerritory.getAssemblage('multiplyingControl')()
+// Main assemblage that territorializes all controls
+appPlateau.registerAssemblage('advancedCounter', () => {
+  return dom('div', null,
+    appPlateau.getAssemblage('displayingComputed')(),
+    appPlateau.getAssemblage('incrementing')(),
+    appPlateau.getAssemblage('multiplyingControl')()
   );
 });
 
-// Cartography function - maps the territory to visual assemblages
-export default function mapTerritory() {
-  const cartography = new Cartography(appTerritory, 'root');
-  cartography.map(appTerritory.getAssemblage('advancedCounter')());
+// Plateau mapping function - maps the plateau to visual assemblages
+export default function mapPlateau() {
+  appPlateau.setRoot('root');
+  appPlateau.cartography(appPlateau.getAssemblage('advancedCounter')());
 }
 ```
+
+## Getting Started
+
+### Installation
+
+```bash
+npm install
+```
+
+### Running Apps
+
+The framework supports multiple apps that can be run individually:
+
+```bash
+# List available apps
+npm run list-apps
+
+# Start a specific app
+npm run start-app <AppName>
+
+# Examples:
+npm run start-app CounterApp
+npm run start-app TodoList
+```
+
+## Philosophy
+
+Nomadic embraces the rhizomatic philosophy of Gilles Deleuze and Félix Guattari:
+
+- **No hierarchical structures**: Everything is connected in a network
+- **Becoming over being**: Focus on processes and transformations
+- **Smooth spaces**: Plateaus allow free movement and connection
+- **Assemblages**: Temporary configurations that can be disassembled and reassembled
+
+This approach makes the framework particularly well-suited for rapid prototyping, iterative development, and applications that need to adapt quickly to changing requirements.
 
