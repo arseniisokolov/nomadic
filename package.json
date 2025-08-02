@@ -61,6 +61,8 @@
   },
   "scripts": {
     "start": "node scripts/start.js",
+    "start-app": "node scripts/start-app.js",
+    "list-apps": "node scripts/list-apps.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js"
   },

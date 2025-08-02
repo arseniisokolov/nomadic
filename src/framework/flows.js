@@ -32,42 +32,40 @@ export function createFlow(initial) {
 // DOM Flow - for DOM manipulation
 export function createDOMFlow(element, property = 'textContent') {
   const flow = new BaseFlow(element[property] || '');
-  
-  // Override set to update DOM
-  const originalSet = flow.set;
-  flow.set = function(next) {
+
+  flow.set = function (next) {
     this.value = next;
     if (element && element[property] !== undefined) {
       element[property] = next;
     }
     this.cuts.forEach(fn => fn(this.value));
   };
-  
+
   return flow;
 }
 
 // Event Flow - for event handling
 export function createEventFlow() {
   const flow = new BaseFlow(null);
-  
+
   // Add trigger method for events
-  flow.trigger = function(event) {
+  flow.trigger = function (event) {
     this.set(event);
   };
-  
+
   return flow;
 }
 
 // Computed Flow - for derived values
 export function createComputedFlow(dependencies, computeFn) {
   const flow = new BaseFlow(computeFn(dependencies.map(d => d.get())));
-  
+
   dependencies.forEach(dep => {
     dep.cut(() => {
       flow.set(computeFn(dependencies.map(d => d.get())));
     });
   });
-  
+
   return flow;
 }
 
@@ -83,20 +81,3 @@ export function createDeal(flows, assembler) {
 
   return result;
 }
-
-// Unite flows into assemblages
-export function uniteFlows(flows, assemblageFn) {
-  const assemblage = assemblageFn(flows);
-  
-  // Connect all flows to the assemblage
-  flows.forEach(flow => {
-    flow.cut(() => {
-      // Re-render assemblage when any flow changes
-      if (assemblage && assemblage.update) {
-        assemblage.update();
-      }
-    });
-  });
-  
-  return assemblage;
-} 

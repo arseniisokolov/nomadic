@@ -2,6 +2,7 @@
 // Based on Deleuze's concept of plateaus - smooth spaces of becoming
 
 import { createDeal } from './flows.js';
+import { PlateauLogger } from './logger.js';
 
 export class Plateau {
   constructor(flows = {}, rootElement = null) {
@@ -14,11 +15,22 @@ export class Plateau {
     if (this.root) {
       this.root.innerHTML = "";
     }
+
+    // Initialize logger
+    this.logger = new PlateauLogger(this);
+    
+    // Log initial state
+    this.logger.logState();
   }
 
   // Add a flow to this plateau
   addFlow(name, flow) {
     this.flows[name] = flow;
+    
+    // Add logging to the flow
+    this.logger.wrapFlowWithLogging(flow, name);
+    
+    this.logger.logFlowAdded(name);
     return this;
   }
 
@@ -26,12 +38,18 @@ export class Plateau {
   deal(name, flowNames, assembler) {
     const selectedFlows = flowNames.map(name => this.flows[name]);
     this.flows[name] = createDeal(selectedFlows, assembler);
+    
+    // Add logging to the deal flow
+    this.logger.wrapFlowWithLogging(this.flows[name], name);
+    
+    this.logger.logDealCreated(name);
     return this;
   }
 
   // Register an assemblage (component) in this plateau
   registerAssemblage(name, assemblage) {
     this.assemblages.set(name, assemblage);
+    this.logger.logAssemblageRegistered(name);
     return this;
   }
 
@@ -46,10 +64,11 @@ export class Plateau {
   }
 
   // Map the plateau to the DOM
-  map(assemblage) {
+  cartography(assemblage) {
     if (this.root) {
       this.root.append(assemblage);
     }
+    this.logger.logCartography();
   }
 
   // Update the map when flows change
@@ -58,6 +77,7 @@ export class Plateau {
       if (this.root) {
         this.root.append(assemblage);
       }
+      this.logger.logFlowChange('update');
     });
   }
 
@@ -77,6 +97,18 @@ export class Plateau {
     if (this.root) {
       this.root.innerHTML = "";
     }
+    
+    this.logger.logRootSet();
     return this;
+  }
+
+  // Enable/disable logging
+  enableLogging(enabled = true) {
+    this.logger.enable(enabled);
+  }
+
+  // Get current state snapshot
+  getStateSnapshot() {
+    return this.logger.getStateSnapshot();
   }
 } 

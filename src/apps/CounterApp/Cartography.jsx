@@ -1,20 +1,12 @@
-import {
-  createFlow,
-  createDOMFlow,
-  createEventFlow,
-  createComputedFlow,
-  Plateau,
-  dom,
-  createFlowAssemblage,
-  createDOMAssemblage
-} from './framework';
+import * as framework from '../../framework';
+import { dom } from '../../dom';
 
 // Create a plateau - a domain that organizes flows and assemblages
-const appPlateau = new Plateau();
+const appPlateau = new framework.Plateau();
 
 // Establish rhizomatic flows using different flow types
-appPlateau.addFlow('counting', createFlow(0));
-appPlateau.addFlow('multiplying', createFlow(1));
+appPlateau.addFlow('counting', framework.createFlow(0));
+appPlateau.addFlow('multiplying', framework.createFlow(1));
 
 // Create a computed flow that derives from other flows
 appPlateau.deal('computing', ['counting', 'multiplying'], ([count, mult]) => {
@@ -29,7 +21,7 @@ appPlateau.deal('displaying', ['computing'], ([computed]) => {
 });
 
 // Create an event flow for user interactions
-const clickEvent = createEventFlow();
+const clickEvent = framework.createEventFlow();
 appPlateau.addFlow('clicking', clickEvent);
 
 // Register an assemblage that unites flows - demonstrates flow assemblage
@@ -39,8 +31,8 @@ appPlateau.registerAssemblage('displayingComputed', () => {
 
   // Create a DOM assemblage that unites the display flow with a DOM element
   const displayElement = dom('h2', null, displaying.get());
-  
-  return createDOMAssemblage(displayElement, {
+
+  return framework.createDOMAssemblage(displayElement, {
     text: displaying
   }).element;
 
@@ -78,10 +70,7 @@ appPlateau.registerAssemblage('domFlowExample', () => {
   // Create a DOM element
   const counterElement = dom('div', { className: 'counter-display' }, '0');
 
-  // Create a DOM flow that directly manipulates the element ??
-  const domFlow = createDOMFlow(counterElement, 'textContent');
-
-  return createDOMAssemblage(counterElement, {
+  return framework.createDOMAssemblage(counterElement, {
     text: appPlateau.getFlow('counting')
   }).element;
 });
@@ -101,7 +90,7 @@ appPlateau.registerAssemblage('eventFlowExample', () => {
   )
 
   // Create a DOM assemblage for the event display
-  const eventAssemblage = createDOMAssemblage(eventDisplay, {
+  const eventAssemblage = framework.createDOMAssemblage(eventDisplay, {
     text: appPlateau.getFlow('eventText')
   });
 
@@ -121,7 +110,6 @@ appPlateau.registerAssemblage('advancedCounter', () => {
 
 // Plateau mapping function - maps the plateau to visual assemblages
 export default function mapPlateau() {
-  const plateau = new Plateau();
-  plateau.setRoot('root');
-  plateau.map(appPlateau.getAssemblage('advancedCounter')());
+  appPlateau.setRoot('root');
+  appPlateau.cartography(appPlateau.getAssemblage('advancedCounter')());
 }
