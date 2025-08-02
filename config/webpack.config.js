@@ -75,6 +75,19 @@ const sassModuleRegex = /\.module\.(scss|sass)$/;
 // Custom JSX runtime for assemblage framework
 const hasJsxRuntime = false;
 
+// Get the app name from environment variable or use default
+const getAppEntryPoint = () => {
+  const appName = process.env.APP_NAME;
+  if (appName) {
+    const appIndexJs = path.join(paths.appSrc, 'apps', appName, 'index.js');
+    if (fs.existsSync(appIndexJs)) {
+      return appIndexJs;
+    }
+  }
+  // Fallback to default
+  return paths.appIndexJs;
+};
+
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
 module.exports = function (webpackEnv) {
@@ -190,7 +203,7 @@ module.exports = function (webpackEnv) {
       : isEnvDevelopment && 'cheap-module-source-map',
     // These are the "entry points" to our application.
     // This means they will be the "root" imports that are included in JS bundle.
-    entry: paths.appIndexJs,
+    entry: getAppEntryPoint(),
     output: {
       // The build folder.
       path: paths.appBuild,
