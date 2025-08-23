@@ -1,5 +1,8 @@
 # Nomadic Framework
 
+> [!NOTE]
+> This project has not been completed yet.
+
 **Nomadic** is a JavaScript framework inspired by postmodern philosophy that uses a rhizomatic approach instead of traditional tree structures.
 
 ## Core Concepts
